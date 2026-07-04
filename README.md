@@ -19,21 +19,24 @@ And Claude fetches, parses, and presents them instantly — names, companies, mo
 ---
 
 ## Architecture
+
+```
 Claude (claude.ai)
-│
-│  MCP over HTTPS
-▼
+       │
+       │  MCP over HTTPS
+       ▼
 Nginx (IP Allowlist — Anthropic IPs only)
-│
-▼
+       │
+       ▼
 n8n MCP Server Trigger
-│
-▼
+       │
+       ▼
 n8n Subworkflow — Get Inquiries
-│
-├── HTTP Request → TradeIndia Inquiry API
-├── Code Node → Parse + Clean leads
-└── Code Node → Aggregate all leads into single JSON
+       │
+       ├── HTTP Request → TradeIndia Inquiry API
+       ├── Code Node → Parse + Clean leads
+       └── Code Node → Aggregate all leads into single JSON
+```
 
 **Key design decision:** No OAuth server required. The MCP endpoint is locked at the Nginx layer to Anthropic's published outbound IP range (`160.79.104.0/21`). Only Anthropic's servers can physically reach the URL — everyone else gets a `403`.
 
@@ -52,13 +55,16 @@ n8n Subworkflow — Get Inquiries
 ---
 
 ## Project Structure
+
+```
 tradeindia-mcp/
 ├── README.md
 ├── workflows/
-│   ├── 1-tradeindia-get-inquiries-subworkflow.json   # Fetches + cleans leads from TradeIndia API
-│   └── 2-tradeindia-mcp-server.json                  # MCP Server Trigger + tool definition
+│   ├── 1-tradeindia-get-inquiries-subworkflow.json
+│   └── 2-tradeindia-mcp-server.json
 └── nginx/
-└── mcp-location-block.conf                       # Nginx config snippet to add to your server block
+    └── mcp-location-block.conf
+```
 
 ---
 
