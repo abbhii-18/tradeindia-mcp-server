@@ -1,0 +1,66 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [{"name": "from_date"}, {"name": "to_date"}]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-336, 0],
+      "id": "a38cc073-150f-4f21-8fdb-133f91f1bd46",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://www.tradeindia.com/utils/my_inquiry.html",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "userid", "value": "<Enter user id>"},
+            {"name": "profile_id", "value": "<Enter profile id>"},
+            {"name": "key", "value": "<Enter key>"},
+            {"name": "from_date", "value": "={{ $json.from_date || $now.setZone('Asia/Kolkata').minus({ hours: 6 }).toFormat('yyyy-MM-dd') }}"},
+            {"name": "to_date", "value": "={{ $json.to_date || $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd') }}"}
+          ]
+        },
+        "options": {"response": {"response": {"responseFormat": "text"}}}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-96, 0],
+      "id": "5623b368-aa59-4340-885d-bbc63ec926db",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.data;\n\nconst leads = JSON.parse(raw);\n\nconst clean = (value) => {\n  return (value ?? '')\n    .toString()\n    .replace(/<[^>]*>/g, '')\n    .replace(/[\\r\\n\\t]+/g, ' ')\n    .replace(/\\\\/g, '')\n    .replace(/\"/g, \"'\")\n    .replace(/\\s+/g, ' ')\n    .trim();\n};\n\nreturn leads.map(lead => ({\n  json: {\n    name: clean(lead.sender_name),\n    company: clean(lead.sender_co),\n    email: clean(lead.sender_email),\n    mobile: clean(lead.sender_mobile).replace(/[^\\d+]/g, ''),\n    other_mobiles: clean(lead.sender_other_mobiles).replace(/[^\\d+]/g, ''),\n    address: clean(lead.address),\n    city: clean(lead.sender_city),\n    state: clean(lead.sender_state),\n    country: clean(lead.sender_country) || 'India',\n    message: clean(lead.message),\n    product_name: clean(lead.product_name),\n    rfi_id: clean(lead.rfi_id),\n    source: clean(lead.source)\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [128, 0],
+      "id": "314f2b7f-c8bc-40cf-9717-98183bb1fabc",
+      "name": "Clean Leads"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allLeads = $input.all().map(item => item.json);\n\nreturn [{\n  json: {\n    leads: allLeads,\n    count: allLeads.length,\n    fetched_at: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [336, 0],
+      "id": "b927bf25-bad8-4266-85bf-bfa329f23002",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {"main": [[{"node": "HTTP Request", "type": "main", "index": 0}]]},
+    "HTTP Request": {"main": [[{"node": "Clean Leads", "type": "main", "index": 0}]]},
+    "Clean Leads": {"main": [[{"node": "Code in JavaScript", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "e821914862cb665c94bcc646f1634deb88455fdcda16f561a5a2fb3d9bdf1e40"
+  }
+}

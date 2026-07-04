@@ -1,0 +1,54 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ti-9f2c7a41e8b04d1a-mcp"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [-64, -112],
+      "id": "dbf605c5-2097-4eb9-abb9-a9000a986d45",
+      "name": "MCP Server Trigger",
+      "webhookId": "e1a2b3c4-0002-4a1a-9a11-000000000001"
+    },
+    {
+      "parameters": {
+        "name": "get_tradeindia_inquiries",
+        "description": "Fetch TradeIndia buyer inquiries (leads) received within a date range. Provide from_date and to_date in YYYY-MM-DD format. If no dates are given, defaults to the last 6 hours.",
+        "workflowId": {
+          "__rl": true,
+          "value": "RlBJxSkJvW7Jf7T0",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RlBJxSkJvW7Jf7T0",
+          "cachedResultName": "TradeIndia - Get Inquiries (Subworkflow)"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "from_date",
+              "stringValue": "={{ $now.setZone('Asia/Kolkata').minus({ hours: 24 }).toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "to_date",
+              "stringValue": "={{ $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [-64, 112],
+      "id": "e35f0bd2-220b-4783-9664-17d5ce7d290a",
+      "name": "get_tradeindia_inquiries"
+    }
+  ],
+  "connections": {
+    "get_tradeindia_inquiries": {
+      "ai_tool": [[{"node": "MCP Server Trigger", "type": "ai_tool", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "e821914862cb665c94bcc646f1634deb88455fdcda16f561a5a2fb3d9bdf1e40"
+  }
+}
